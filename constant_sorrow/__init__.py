@@ -38,6 +38,9 @@ class _Constant:
         for_comparison_sake = self._cast_to_other_object_type_or_bytes(other)
         return for_comparison_sake == other
 
+    def __call__(self, representation):
+        return self.represent_as(representation)
+
     def _cast_to_other_object_type_or_bytes(self, other):
         if type(other) in (bytes, int, str):
             # Cast to other object type if it's bytes, int, or str.
@@ -46,7 +49,6 @@ class _Constant:
             # bytes otherwise.
             caster = bytes
         return caster(self)
-
 
     def _cast_repr(self, caster, *args, **kwargs):
         """
