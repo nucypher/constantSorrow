@@ -15,36 +15,27 @@ def test_different_constants_are_unequal():
     assert constants.ONE_THING != constants.ANOTHER_THING
 
 
-def test_same_constants_are_equal():
+def test_same_constants_are_identical():
+    assert constants.SAME_THING == constants.SAME_THING
     assert constants.SAME_THING is constants.SAME_THING
 
 
-def test_bytes_representation():
-    """
-    A constant can be represented as some specific bytes.
-    """
+def test_set_representation():
+    """A constant can be represented as some specific bytes."""
     llamas = constants.LLAMAS
-    bytes_repr = b"llamas_as_bytes"
-    constants.LLAMAS.represent_as(bytes_repr)
-    assert bytes(llamas) == bytes_repr
+    constants.LLAMAS.represent_as(b"llamas_as_bytes")
+    assert bytes(llamas) == b"llamas_as_bytes"
+
+    # Here's a shortcut for setting the representation.
+    constants.AFRICAN_SWALLOW(b"non-migratory")
+    assert bytes(constants.AFRICAN_SWALLOW) == b"non-migratory"
 
 
 def test_bytes_representation_default():
+    """By default, constants are represented as a SHA512 hash of their name, truncated to 8 bytes."""
     another_constant = constants.ANOTHER_CONSTANT
     assert len(bytes(another_constant)) == 8
     assert bytes(another_constant) == constants.ANOTHER_CONSTANT
-
-
-def test_cant_represent_as_bytes_again():
-    # Here's a shortcut for setting the representation.
-    constants.DINGOS("a certain dingo")
-
-    # We can't change the value once it is set.
-    with pytest.raises(ValueError):
-        constants.DINGOS("something else")
-
-    # However setting the same value again is permitted.
-    constants.DINGOS("a certain dingo")
 
 
 def test_cast_representation():
@@ -56,20 +47,35 @@ def test_cast_representation():
     assert str(constants.FOURTEEN) == "14"
 
 
+def test_cant_change_representation():
+    constants.DINGOS("a certain dingo")
+
+    # We can't change the value once it is set.
+    with pytest.raises(ValueError):
+        constants.DINGOS("something else")
+
+    # However setting the same value again is permitted.
+    constants.DINGOS("a certain dingo")
+
+    assert bytes(constants.DINGOS) == b"a certain dingo"
+
+
 def test_bool_representation():
     # Unlike representing as bytes, you can't automatically represent as bool.
     with pytest.raises(TypeError):
         bool(constants.NO_KNOWN_BOOL)
 
     # You can either set the representation...
-    constants.WITH_BOOL("Strings are True, obviously.")
+    constants.WITH_BOOL_FROM_REPR("non-empty strings are True, obviously.")
+    assert bool(constants.WITH_BOOL_FROM_REPR) is True
 
-    assert bool(constants.WITH_BOOL)
+    # Or you can specifically set a bool representation.
+    constants.WITH_SET_BOOL.bool_value(False)
+    assert bool(constants.WITH_SET_BOOL) is False
 
-    # Or you can specifically set a bool representation, which will override it.
-    constants.WITH_BOOL.bool_value(False)
-
-    assert bool(constants.WITH_BOOL) is False
+    # A set boolean value will take precedence over the representation.
+    constants.WITH_SET_BOOL("this string is non-empty, but this constant is still False.")
+    assert bool(constants.WITH_SET_BOOL) is False
 
     # You can set it to the value again...
     constants.WITH_BOOL.bool_value(False)
@@ -77,6 +83,15 @@ def test_bool_representation():
     # But you can't change the bool value once set.
     with pytest.raises(ValueError):
         constants.WITH_BOOL.bool_value(True)
+
+    # Also, we can't take the first constant above and set its bool value to False,
+    # because it's a constant and it was already true by dint of its representation.
+    with pytest.raises(ValueError):
+        constants.WITH_BOOL_FROM_REPR.bool_value(False)
+
+    # We can, however, set it to True, because its current value is True.
+    constants.WITH_BOOL_FROM_REPR.bool_value(True)
+    assert bool(constants.WITH_BOOL_FROM_REPR) is True
 
 
 def test_cant_set_attrs():
@@ -89,11 +104,11 @@ def test_basic_interaction():
     # Constants are repr'd by their name; simple.
     assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE"
 
-    # They are added together by their repr.
+    # They are added together by the value set for representation.
     constants.FORTY_TWO(42)
     assert 80 + constants.FORTY_TWO == 80 + 42
 
-    # Adding strings to a constant with a string representaiton yields a string.
+    # Adding strings to a constant with a string representation yields a string.
     constants.USERNAME("Bob")
     assert constants.USERNAME + " up and down in the water" == "Bob up and down in the water"
 

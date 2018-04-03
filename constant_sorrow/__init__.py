@@ -14,7 +14,8 @@ class _Constant:
         # They're used by a lot of IDE tooling, so let's not mess up a good thing.
         if not name.isupper():
             if not (name.startswith("__") and name.endswith("__")):
-                raise ValueError("Use ALL_CAPS names for constants.  See https://www.python.org/dev/peps/pep-0008/#constants.")
+                raise ValueError(
+                    "Use ALL_CAPS names for constants.  See https://www.python.org/dev/peps/pep-0008/#constants.")
         self.name = name
 
     def __setattr__(self, key, value):
@@ -89,7 +90,9 @@ class _Constant:
 
     def represent_as(self, representation):
         if self._repr_content is not None and self._repr_content is not representation:
-            raise ValueError("Can't set representation to a different value once set - it was already set to {} when you tried to set it to {}".format(self._repr_content, representation))
+            raise ValueError(
+                "Can't set representation to a different value once set - it was already set to {} when you tried to set it to {}".format(
+                    self._repr_content, representation))
         elif self._repr_content is representation:
             return
         else:
@@ -97,10 +100,22 @@ class _Constant:
         return self
 
     def bool_value(self, bool_value):
-        if self._bool_repr is not None and self._bool_repr is not bool(bool_value):
-            raise ValueError("Can't change the bool value once set.")
-        else:
-            self._bool_repr = bool(bool_value)
+        if self._repr_content is not None:
+            if bool(self) is not bool(bool_value):
+                raise ValueError("Based on the set representation, {} was previously {}; can't change to {}.".format(
+                    self.name,
+                    bool(self),
+                    bool(bool_value)))
+
+        if self._bool_repr is not None:
+            if bool(self) is not bool(bool_value):
+                raise ValueError("The specified bool value for {} was previously {}; can't change to {}.".format(
+                    self.name,
+                    bool(self),
+                    bool(
+                        bool_value)))
+
+        self._bool_repr = bool(bool_value)
 
 
 class __ConstantFactory:
