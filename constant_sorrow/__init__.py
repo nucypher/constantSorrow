@@ -116,6 +116,7 @@ class _Constant:
                         bool_value)))
 
         self._bool_repr = bool(bool_value)
+        return self
 
 
 class __ConstantFactory:
