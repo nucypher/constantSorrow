@@ -1,32 +1,54 @@
 import hashlib
 from bytestring_splitter import BytestringSplitter
+from copy import deepcopy
 
 _digest_length = 8
 
 
 class _Constant:
     _repr_content = None
+    _bool_repr = None
 
     def __init__(self, name):
+        # Names must be upper case except that dunder names can be set.
+        # They're used by a lot of IDE tooling, so let's not mess up a good thing.
+        if not name.isupper():
+            if not (name.startswith("__") and name.endswith("__")):
+                raise ValueError("Use ALL_CAPS names for constants.  See https://www.python.org/dev/peps/pep-0008/#constants.")
         self.name = name
 
     def __setattr__(self, key, value):
-        if key in ("_repr_content", "name"):
+        if key in ("_repr_content", "_bool_repr", "name"):
             super().__setattr__(key, value)
         else:
             raise TypeError("Don't try to set values on a constant.  I mean, what's the point?")
 
     def __bytes__(self):
-        return self._cast_repr(bytes)
+        if type(self._repr_content) == str:
+            return self._cast_repr(bytes, encoding="utf-8")
+        else:
+            return self._cast_repr(bytes)
 
     def __int__(self):
         return self._cast_repr(int)
 
     def __str__(self):
-        return self._cast_repr(str, encoding="utf-8")
+        if type(self._repr_content) == bytes:
+            return self._cast_repr(str, encoding="utf-8")
+        else:
+            return self._cast_repr(str)
+
+    def __bool__(self):
+        if self._bool_repr is None:
+            if self._repr_content is None:
+                raise TypeError("This constant can't currently be represented as a bool.")
+            else:
+                return bool(self._repr_content)
+        else:
+            return self._bool_repr
 
     def __repr__(self):
-        return "Constant: {}".format(self.name)
+        return self.name
 
     def __add__(self, other):
         return self._cast_to_other_object_type_or_bytes(other) + other
@@ -48,6 +70,9 @@ class _Constant:
         else:
             # bytes otherwise.
             caster = bytes
+        # if type(other) == bytes and type(self._repr_content) == str:
+        #     return self._cast_repr(str, encoding="utf-8")
+        # else:
         return caster(self)
 
     def _cast_repr(self, caster, *args, **kwargs):
@@ -59,10 +84,8 @@ class _Constant:
         """
         if self._repr_content is None:
             self.represent_as(hashlib.sha512(self.name.encode()).digest()[:_digest_length])
-        try:
-            return caster(self._repr_content, *args, **kwargs)
-        except AttributeError:
-            raise TypeError("This constant doesn't have representation content.")
+
+        return caster(self._repr_content, *args, **kwargs)
 
     def represent_as(self, representation):
         if self._repr_content is not None and self._repr_content is not representation:
@@ -70,8 +93,14 @@ class _Constant:
         elif self._repr_content is representation:
             return
         else:
-            self._repr_content = representation
+            self._repr_content = deepcopy(representation)
         return self
+
+    def bool_value(self, bool_value):
+        if self._bool_repr is not None and self._bool_repr is not bool(bool_value):
+            raise ValueError("Can't change the bool value once set.")
+        else:
+            self._bool_repr = bool(bool_value)
 
 
 class __ConstantFactory:
@@ -83,7 +112,7 @@ class __ConstantFactory:
         try:
             return super().__getattr__(item)
         except AttributeError:
-            constant = self.registry.setdefault(item.upper(), _Constant(item.upper()))
+            constant = self.registry.setdefault(item.upper(), _Constant(item))
             return constant
 
 

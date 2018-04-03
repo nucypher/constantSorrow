@@ -1,13 +1,21 @@
 import pytest
+from constant_sorrow import constants
+
+
+def test_establishing_a_constant():
+    # You get a constant by just picking an all-caps name and using it as an attr on constants.
+    like_this = constants.THIS_IS_A_VALID_CONSTANT
+
+    # But you can't make a constant in lower case.
+    with pytest.raises(ValueError):
+        constants.this_is_not_the_right_case_for_a_constant
 
 
 def test_different_constants_are_unequal():
-    from constant_sorrow import constants
     assert constants.ONE_THING != constants.ANOTHER_THING
 
 
 def test_same_constants_are_equal():
-    from constant_sorrow import constants
     assert constants.SAME_THING is constants.SAME_THING
 
 
@@ -15,7 +23,6 @@ def test_bytes_representation():
     """
     A constant can be represented as some specific bytes.
     """
-    from constant_sorrow import constants
     llamas = constants.LLAMAS
     bytes_repr = b"llamas_as_bytes"
     constants.LLAMAS.represent_as(bytes_repr)
@@ -23,15 +30,12 @@ def test_bytes_representation():
 
 
 def test_bytes_representation_default():
-    from constant_sorrow import constants
     another_constant = constants.ANOTHER_CONSTANT
     assert len(bytes(another_constant)) == 8
     assert bytes(another_constant) == constants.ANOTHER_CONSTANT
 
 
 def test_cant_represent_as_bytes_again():
-    from constant_sorrow import constants
-
     # Here's a shortcut for setting the representation.
     constants.DINGOS("a certain dingo")
 
@@ -44,10 +48,58 @@ def test_cant_represent_as_bytes_again():
 
 
 def test_cast_representation():
-    from constant_sorrow import constants
     bytes_repr = b"14"
     constants.FOURTEEN.represent_as(bytes_repr)
 
     assert int(constants.FOURTEEN) == 14
     assert bytes(constants.FOURTEEN) == b"14"
     assert str(constants.FOURTEEN) == "14"
+
+
+def test_bool_representation():
+    # Unlike representing as bytes, you can't automatically represent as bool.
+    with pytest.raises(TypeError):
+        bool(constants.NO_KNOWN_BOOL)
+
+    # You can either set the representation...
+    constants.WITH_BOOL("Strings are True, obviously.")
+
+    assert bool(constants.WITH_BOOL)
+
+    # Or you can specifically set a bool representation, which will override it.
+    constants.WITH_BOOL.bool_value(False)
+
+    assert bool(constants.WITH_BOOL) is False
+
+    # You can set it to the value again...
+    constants.WITH_BOOL.bool_value(False)
+
+    # But you can't change the bool value once set.
+    with pytest.raises(ValueError):
+        constants.WITH_BOOL.bool_value(True)
+
+
+def test_cant_set_attrs():
+    # You can't set an attr on a constant.
+    with pytest.raises(TypeError):
+        constants.FISH_SLAPPING_DANCE.whatever = 4
+
+
+def test_basic_interaction():
+    # Constants are repr'd by their name; simple.
+    assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE"
+
+    # They are added together by their repr.
+    constants.FORTY_TWO(42)
+    assert 80 + constants.FORTY_TWO == 80 + 42
+
+    # Adding strings to a constant with a string representaiton yields a string.
+    constants.USERNAME("Bob")
+    assert constants.USERNAME + " up and down in the water" == "Bob up and down in the water"
+
+    # But adding bytes causes a cast to bytes.
+    assert b"Sideshow " + constants.USERNAME == b'Sideshow Bob'
+
+    # Same with int.
+    constants.THIRTY_SEVEN(b"37")
+    assert constants.THIRTY_SEVEN + 10 == 47
