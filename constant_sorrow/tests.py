@@ -100,9 +100,12 @@ def test_cant_set_attrs():
         constants.FISH_SLAPPING_DANCE.whatever = 4
 
 
-def test_basic_interaction():
+def test_arithmetic():
     # Constants are repr'd by their name; simple.
     assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE"
+    # If they have a representation set, that is added.
+    constants.HOLY_HAND_GRENADE("One, Two, Five!")
+    assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE (One, Two, Five!)"
 
     # They are added together by the value set for representation.
     constants.FORTY_TWO(42)
@@ -118,3 +121,37 @@ def test_basic_interaction():
     # Same with int.
     constants.THIRTY_SEVEN(b"37")
     assert constants.THIRTY_SEVEN + 10 == 47
+
+    # sub, mul, and truediv work also.
+    assert constants.THIRTY_SEVEN - 30 == 7
+    assert 137 - constants.THIRTY_SEVEN == 100
+
+    assert constants.THIRTY_SEVEN * 2 == 74
+    assert 3 * constants.THIRTY_SEVEN == 111
+
+    assert constants.THIRTY_SEVEN / 4 == 9.25
+    assert 111 / constants.THIRTY_SEVEN == 3.0
+
+
+def test_constants_can_be_used_as_ints():
+    constants.THREE(3)
+    assert "humbug"[:constants.THREE] == "hum"
+
+
+def test_constant_length():
+    # The length of a constant is the length of its name...
+    assert len(constants.PEAR) == 4
+
+    # ...unless the representation is set, then it will be that length.
+    constants.PEAR("fruit")
+    assert len(constants.PEAR) == 5
+
+
+def test_use_methods_on_representation():
+    # By default, accessing strange attributes with raise AttributeError.
+    with pytest.raises(AttributeError):
+        constants.THE_OLD_MAN_THE_BOAT.upper()
+
+    # If a representation is set, attributes other than ("__repr_content", "__bool_repr", "__name") pass through.
+    constants.THE_OLD_MAN_THE_BOAT("when Fred eats food gets thrown.")
+    assert constants.THE_OLD_MAN_THE_BOAT.upper() == 'WHEN FRED EATS FOOD GETS THROWN.'
