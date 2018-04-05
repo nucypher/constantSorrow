@@ -3,8 +3,11 @@ from constant_sorrow import constants
 
 
 def test_establishing_a_constant():
-    # You get a constant by just picking an all-caps name and using it as an attr on constants.
-    like_this = constants.THIS_IS_A_VALID_CONSTANT
+    # You get a constant by just picking an all-caps name and importing it.
+    from constant_sorrow.constants import THIS_IS_A_VALID_CONSTANT
+
+    # That name didn't exist before - you literally just make up
+    # an all-caps name and import it.
 
     # But you can't make a constant in lower case.
     with pytest.raises(ValueError):
@@ -12,23 +15,25 @@ def test_establishing_a_constant():
 
 
 def test_different_constants_are_unequal():
+    # Constants with different names are not equal to each other by default.
     assert constants.ONE_THING != constants.ANOTHER_THING
 
 
 def test_same_constants_are_identical():
-    assert constants.SAME_THING == constants.SAME_THING
-    assert constants.SAME_THING is constants.SAME_THING
+    # However, constants with the same name are both equal and identical to one another.
+    # They are literally the same object.
+    from constant_sorrow.constants import SAME_THING
+    assert constants.SAME_THING == SAME_THING
+    assert constants.SAME_THING is SAME_THING
 
 
 def test_set_representation():
-    """A constant can be represented as some specific bytes."""
-    llamas = constants.LLAMAS
-    constants.LLAMAS.represent_as(b"llamas_as_bytes")
-    assert bytes(llamas) == b"llamas_as_bytes"
-
-    # Here's a shortcut for setting the representation.
-    constants.AFRICAN_SWALLOW(b"non-migratory")
-    assert bytes(constants.AFRICAN_SWALLOW) == b"non-migratory"
+    # Merely using a constant as a special value flag might not be enough.
+    # You might want to represent it for the purposes of, for example,
+    # sending it over the wire as bytes.
+    from constant_sorrow.constants import AFRICAN_SWALLOW
+    AFRICAN_SWALLOW(b"non-migratory")
+    assert bytes(AFRICAN_SWALLOW) == b"non-migratory"
 
 
 def test_bytes_representation_default():
@@ -39,8 +44,7 @@ def test_bytes_representation_default():
 
 
 def test_cast_representation():
-    bytes_repr = b"14"
-    constants.FOURTEEN.represent_as(bytes_repr)
+    constants.FOURTEEN(b"14")
 
     assert int(constants.FOURTEEN) == 14
     assert bytes(constants.FOURTEEN) == b"14"
@@ -77,15 +81,17 @@ def test_bool_representation():
     constants.WITH_SET_BOOL("this string is non-empty, but this constant is still False.")
     assert bool(constants.WITH_SET_BOOL) is False
 
-    # You can set it to the value again...
+    # You can set it to the same value again...
     constants.WITH_BOOL.bool_value(False)
 
     # But you can't change the bool value once set.
     with pytest.raises(ValueError):
         constants.WITH_BOOL.bool_value(True)
 
-    # Also, we can't take the first constant above and set its bool value to False,
-    # because it's a constant and it was already true by dint of its representation.
+    # Also, we can't take the first constant above and set its bool value to False.
+    # It was True before, because prior to it having a bool_value, it was represented
+    # by a non-empty string.  So now, we can't change it to False.
+    # After all - we want it to act like a constant.
     with pytest.raises(ValueError):
         constants.WITH_BOOL_FROM_REPR.bool_value(False)
 
@@ -100,23 +106,27 @@ def test_cant_set_attrs():
         constants.FISH_SLAPPING_DANCE.whatever = 4
 
 
-def test_arithmetic():
+def test_repr_as_str():
     # Constants are repr'd by their name; simple.
-    assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE"
+    from constant_sorrow.constants import HOLY_HAND_GRENADE
+    assert repr(HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE"
     # If they have a representation set, that is added.
-    constants.HOLY_HAND_GRENADE("One, Two, Five!")
-    assert repr(constants.HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE (One, Two, Five!)"
+    HOLY_HAND_GRENADE("One, Two, Five!")
+    assert repr(HOLY_HAND_GRENADE) == "HOLY_HAND_GRENADE (One, Two, Five!)"
 
-    # They are added together by the value set for representation.
+
+def test_arithmetic():
+    # Constants are summed by their representation.
     constants.FORTY_TWO(42)
     assert 80 + constants.FORTY_TWO == 80 + 42
 
     # Adding strings to a constant with a string representation yields a string.
-    constants.USERNAME("Bob")
-    assert constants.USERNAME + " up and down in the water" == "Bob up and down in the water"
+    from constant_sorrow.constants import ROBERT
+    ROBERT("Bob")
+    assert ROBERT + " up and down in the water" == "Bob up and down in the water"
 
     # But adding bytes causes a cast to bytes.
-    assert b"Sideshow " + constants.USERNAME == b'Sideshow Bob'
+    assert b"Sideshow " + ROBERT == b'Sideshow Bob'
 
     # Same with int.
     constants.THIRTY_SEVEN(b"37")
@@ -134,24 +144,27 @@ def test_arithmetic():
 
 
 def test_constants_can_be_used_as_ints():
+    # A constant which is represented as an int can be used in most places
+    # that an int can be used, even without casting first.
     constants.THREE(3)
     assert "humbug"[:constants.THREE] == "hum"
 
 
 def test_constant_length():
-    # The length of a constant is the length of its name...
+    # By default, the length of a constant is the length of its name...
     assert len(constants.PEAR) == 4
 
-    # ...unless the representation is set, then it will be that length.
+    # ...but once a representation is set, then it will be that length.
     constants.PEAR("fruit")
     assert len(constants.PEAR) == 5
 
 
 def test_use_methods_on_representation():
     # By default, accessing strange attributes with raise AttributeError.
+    from constant_sorrow.constants import THE_OLD_MAN_THE_BOAT
     with pytest.raises(AttributeError):
-        constants.THE_OLD_MAN_THE_BOAT.upper()
+        THE_OLD_MAN_THE_BOAT.upper()
 
     # If a representation is set, attributes other than ("__repr_content", "__bool_repr", "__name") pass through.
-    constants.THE_OLD_MAN_THE_BOAT("when Fred eats food gets thrown.")
-    assert constants.THE_OLD_MAN_THE_BOAT.upper() == 'WHEN FRED EATS FOOD GETS THROWN.'
+    THE_OLD_MAN_THE_BOAT("when Fred eats food gets thrown.")
+    assert THE_OLD_MAN_THE_BOAT.upper() == 'WHEN FRED EATS FOOD GETS THROWN.'
