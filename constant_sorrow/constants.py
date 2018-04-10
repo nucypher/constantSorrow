@@ -87,6 +87,12 @@ class _Constant:
     def __rtruediv__(self, other):
         return other / self._cast_to_other_object_type_or_bytes(other)
 
+    def __floordiv__(self, other):
+        return self._cast_to_other_object_type_or_bytes(other) // other
+
+    def __rfloordiv__(self, other):
+        return other // self._cast_to_other_object_type_or_bytes(other)
+
     def __eq__(self, other):
         for_comparison_sake = self._cast_to_other_object_type_or_bytes(other)
         return for_comparison_sake == other
