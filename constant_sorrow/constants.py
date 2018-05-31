@@ -12,6 +12,9 @@ class _Constant:
     __repr_content = None
     __bool_repr = None
 
+    class OldKentucky(RuntimeError):
+        pass
+
     def __init__(self, name):
         # Names must be upper case except that dunder names can be set.
         # They're used by a lot of IDE tooling, so let's not mess up a good thing.
@@ -93,19 +96,33 @@ class _Constant:
     def __rfloordiv__(self, other):
         return other // self._cast_to_other_object_type_or_bytes(other)
 
+    def __gt__(self, other):
+        return self._cast_to_other_object_type_or_bytes(other) > other
+
+    def __ge__(self, other):
+        return self._cast_to_other_object_type_or_bytes(other) >= other
+
+    def __lt__(self, other):
+        return self._cast_to_other_object_type_or_bytes(other) < other
+
+    def __le__(self, other):
+        return self._cast_to_other_object_type_or_bytes(other) <= other
+
     def __eq__(self, other):
         for_comparison_sake = self._cast_to_other_object_type_or_bytes(other)
         return for_comparison_sake == other
 
     def __call__(self, representation):
         if self.__repr_content is not None and self.__repr_content is not representation:
-            raise ValueError(
-                "Can't set representation to a different value once set - it was already set to {} when you tried to set it to {}".format(
-                    self.__repr_content, representation))
+            message = "Can't set representation to a different value once set - it was " \
+                      "already set to {} when you tried to set it to {}"
+            raise ValueError(message.format(self.__repr_content, representation))
+
         elif self.__repr_content is representation:
             return self
         else:
             self.__repr_content = deepcopy(representation)
+
         return self
 
     def __index__(self):
@@ -117,10 +134,26 @@ class _Constant:
         else:
             return len(self.__name)
 
+    def __iter__(self):
+        for item in self.__repr_content:
+            yield item
+
+    @property
+    def _sorrow_type(self):
+        if self.__repr_content is None:
+            raise self.OldKentucky
+        repr_type = type(self.__repr_content)
+        return repr_type
+
     def _cast_to_other_object_type_or_bytes(self, other):
         if type(other) in (bytes, int, str):
             # Cast to other object type if it's bytes, int, or str.
             caster = type(other)
+        elif type(other) is _Constant:
+            try:
+                caster = other._sorrow_type
+            except self.OldKentucky:
+                caster = bytes
         else:
             # bytes otherwise.
             caster = bytes
@@ -160,6 +193,7 @@ class _Constant:
         self.__bool_repr = bool(bool_value)
         return self
 
+
 _constants_registry = {}
 
 
@@ -168,5 +202,6 @@ class __ConstantFactory(ModuleType):
     def __getattr__(self, item):
         constant = _constants_registry.setdefault(item.upper(), _Constant(item))
         return constant
+
 
 sys.modules[__name__].__class__ = __ConstantFactory

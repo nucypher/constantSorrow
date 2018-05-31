@@ -159,6 +159,42 @@ def test_constant_length():
     assert len(constants.PEAR) == 5
 
 
+def test_iterable_constant():
+    # Setup a new iterable constant of string literals
+    names = ('Ron', 'Bob', 'Jerry', 'Phil', 'Keith', 'Donna')
+    constants.MEMBERS(names)
+
+    # The constant can be cast to a list...
+    assert list(constants.MEMBERS) == list(names)
+
+    # python 3.6 test
+    # pigpen, *the_rest = list(constants.MEMBERS)
+    # assert pigpen == 'Ron'
+    # assert len(the_rest) == 5
+
+    # ...unpacked into a function.
+    def take_input_and_do_nothing_with_it(a, b, c, d, e, f): return True
+    assert take_input_and_do_nothing_with_it(*constants.MEMBERS)
+
+    # Hold a collection of constants...
+    _weather = (constants.THUNDER('⛈'),
+                constants.LIGHTNING('⚡'),
+                constants.WIND('💨'),
+                constants.RAIN('💧'))
+
+    constants.WEATHER(_weather)
+
+    def operate_on_input(a, b, c, d):
+        assert a+b+c+d == '⛈⚡💨💧'
+        return True
+
+    # ...unpack and operate on the elements directly...
+    assert operate_on_input(*constants.WEATHER)
+
+    # ...or iterate over the constant
+    assert ''.join(str(item) for item in constants.WEATHER) == '⛈⚡💨💧'
+
+
 def test_use_methods_on_representation():
     # By default, accessing strange attributes with raise AttributeError.
     from constant_sorrow.constants import THE_OLD_MAN_THE_BOAT
