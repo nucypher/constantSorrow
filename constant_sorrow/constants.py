@@ -113,12 +113,12 @@ class _Constant:
         return for_comparison_sake == other
 
     def __call__(self, representation):
-        if self.__repr_content is not None and self.__repr_content is not representation:
+        if self.__repr_content is not None and self.__repr_content != representation:
             message = "Can't set representation to a different value once set - it was " \
                       "already set to {} when you tried to set it to {}"
             raise ValueError(message.format(self.__repr_content, representation))
 
-        elif self.__repr_content is representation:
+        elif self.__repr_content == representation:
             return self
         else:
             self.__repr_content = deepcopy(representation)
