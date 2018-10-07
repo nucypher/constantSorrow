@@ -1,0 +1,101 @@
+version: 2
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - python-35:
+          filters:
+            tags:
+              only: /.*/
+      - python-36:
+          filters:
+            tags:
+              only: /.*/
+      - python-37:
+          filters:
+            tags:
+              only: /.*/
+      - deploy:
+          requires:
+          - python-35
+          - python-36
+          - python-37
+          filters:
+            tags:
+              only: /v[0-9]+.*/
+            branches:
+              ignore: /.*/
+
+base_test_steps: &base_test_steps
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "Pipfile" }}
+          - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -U pip==18.0
+            pip install pipenv
+            pipenv install --dev --skip-lock
+      - save_cache:
+          paths:
+            - "~/.local/share/virtualenvs/"
+          key: v2-dependencies-{{ checksum "Pipfile" }}
+      - run:
+          name: Run Tests
+          command: pipenv run pytest  constant_sorrow/tests.py --junitxml=./reports/pytest/results.xml
+      - store_artifacts:
+          path: ./htmlcov
+      - store_test_results:
+          path: /reports/pytest
+
+jobs:
+  python-35:
+    docker:
+      - image: circleci/python:3.5
+    working_directory: ~/repo
+    <<: *base_test_steps
+
+  python-36:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/repo
+    <<: *base_test_steps
+
+  python-37:
+    docker:
+    - image: circleci/python:3.7
+    working_directory: ~/repo
+    <<: *base_test_steps
+
+  deploy:
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+              pipenv sync --three --dev
+              pipenv install --dev --skip-lock twine
+      - run:
+          name: verify git tag == version
+          command: pipenv run python setup.py verify
+      - run:
+          name: init .pypirc
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+      - run:
+          name: create packages
+          command: |
+            pipenv run python setup.py sdist
+            pipenv run python setup.py bdist_wheel
+      - run:
+          name: upload to pypi
+          command: pipenv run twine upload dist/*

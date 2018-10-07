@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+bytestringsplitter = "*"
+
+[dev-packages]
+pytest = "*"
+bumpversion = "*"
+
+[pipenv]
+allow_prereleases = true
