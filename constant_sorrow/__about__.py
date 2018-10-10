@@ -10,7 +10,7 @@ __url__ = "https://github.com/nucypher/constantSorrow"
 
 __summary__ = "I am the man of constant sorrow; I've seen special values as ints, all my days."
 
-__version__ = "0.1.0-alpha.0"
+__version__ = "0.1.0-alpha.1"
 
 __author__ = "NuCypher"
 
