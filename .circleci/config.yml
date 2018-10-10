@@ -17,10 +17,11 @@ workflows:
             tags:
               only: /.*/
       - deploy:
+          context: "NuCypher PyPI"
           requires:
-          - python-35
-          - python-36
-          - python-37
+            - python-35
+            - python-36
+            - python-37
           filters:
             tags:
               only: /v[0-9]+.*/
