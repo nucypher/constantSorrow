@@ -37,9 +37,9 @@ base_test_steps: &base_test_steps
       - run:
           name: Install dependencies
           command: |
-            pip install -U pip==18.0
+            pip3 install --user pip==18.0
             pip install pipenv
-            pipenv install --dev --skip-lock
+            pipenv install --dev --skip-lock --three
       - save_cache:
           paths:
             - "~/.local/share/virtualenvs/"
@@ -80,7 +80,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-              pipenv sync --three --dev
+              pipenv install --three --dev --skip-lock
               pipenv install --dev --skip-lock twine
       - run:
           name: verify git tag == version
