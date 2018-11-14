@@ -11,7 +11,7 @@ from . import _digest_length
 class _Constant:
     __repr_content = None
     __bool_repr = None
-    __uses_default_repr = False
+    __uses_default_repr = True
 
     class OldKentucky(RuntimeError):
         pass
@@ -127,7 +127,7 @@ class _Constant:
         elif self.__repr_content is representation:
             return self
         else:
-            self.__uses_default_repr = True
+            self.__uses_default_repr = False
             self.__repr_content = deepcopy(representation)
 
         return self
