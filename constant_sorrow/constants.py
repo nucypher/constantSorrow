@@ -11,6 +11,7 @@ from . import _digest_length
 class _Constant:
     __repr_content = None
     __bool_repr = None
+    __uses_default_repr = False
 
     class OldKentucky(RuntimeError):
         pass
@@ -25,7 +26,7 @@ class _Constant:
         self.__name = name
 
     def __setattr__(self, key, value):
-        if key in ("_Constant__repr_content", "_Constant__bool_repr", "_Constant__name"):
+        if key in ("_Constant__repr_content", "_Constant__bool_repr", "_Constant__name", "_Constant__uses_default_repr"):
             super().__setattr__(key, value)
         else:
             raise TypeError("Don't try to set values on a constant.  I mean, what's the point?")
@@ -46,6 +47,11 @@ class _Constant:
         return self._cast_repr(int)
 
     def __str__(self):
+        # Unless there's an explicit repr, we want the str value to be the name.
+        if type(self.__repr_content) is None:
+            return self.__name
+        if self.__uses_default_repr:
+            return self.__name
         if type(self.__repr_content) == bytes:
             return self._cast_repr(str, encoding="utf-8")
         else:
@@ -121,6 +127,7 @@ class _Constant:
         elif self.__repr_content is representation:
             return self
         else:
+            self.__uses_default_repr = True
             self.__repr_content = deepcopy(representation)
 
         return self
