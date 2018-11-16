@@ -1,10 +1,10 @@
 import pytest
+
 from constant_sorrow import constants
 
 
 def test_establishing_a_constant():
     # You get a constant by just picking an all-caps name and importing it.
-    from constant_sorrow.constants import THIS_IS_A_VALID_CONSTANT
 
     # That name didn't exist before - you literally just make up
     # an all-caps name and import it.
@@ -78,6 +78,7 @@ def test_bool_representation():
     assert bool(constants.WITH_SET_BOOL) is False
 
     # A set boolean value will take precedence over the representation.
+    # (because it's a Constant - it'd be bizarre behavior for the bool representation to change)
     constants.WITH_SET_BOOL("this string is non-empty, but this constant is still False.")
     assert bool(constants.WITH_SET_BOOL) is False
 
@@ -98,6 +99,45 @@ def test_bool_representation():
     # We can, however, set it to True, because its current value is True.
     constants.WITH_BOOL_FROM_REPR.bool_value(True)
     assert bool(constants.WITH_BOOL_FROM_REPR) is True
+
+
+def test_str_representation():
+    # By default, Constants cast to str as their name:
+    str(constants.BECAUSE_IT_IS_MY_NAME) == "BECAUSE_IT_IS_MY_NAME"
+
+    # If a Constant is ever cast this way, its representation can't be changed to
+    # an object whose string representation is different.
+    # For example, this object that casts to the same string:
+
+    class BecauseICannotHaveAnotherInMyLife:
+        def __str__(self):
+            return "BECAUSE_IT_IS_MY_NAME"
+
+    constants.BECAUSE_IT_IS_MY_NAME(BecauseICannotHaveAnotherInMyLife())
+
+    # ...but this one will not cast away its good name, sir:
+    class AbigailWilliams:
+        def __str__(self):
+            return "Mylène Demongeot"
+
+    str(constants.WINONA_RYDER)
+
+    with pytest.raises(ValueError):
+        constants.WINONA_RYDER(AbigailWilliams())
+
+    # Note: it's possible to use an object which initially has a str repr that matches, but later changes.
+    # This is almost certainly a bad idea, but if you're going to go that far, we trust you have a reason.
+    class BecauseILieAndSignMyselfToLies:
+        name = "JOHN PROCTOR"
+
+        def __str__(self):
+            return self.name
+
+    constants.JOHN_PROCTOR(BecauseILieAndSignMyselfToLies())
+    BecauseILieAndSignMyselfToLies.name = "Daniel Plainview"
+    assert str(constants.JOHN_PROCTOR) == "Daniel Plainview"
+    # ...but again, why?  This seems like a bad idea, but it's also not the place
+    # of the Constant class to police the internal behavior of your classes.
 
 
 def test_cant_set_attrs():
@@ -174,6 +214,7 @@ def test_iterable_constant():
 
     # ...unpacked into a function.
     def take_input_and_do_nothing_with_it(a, b, c, d, e, f): return True
+
     assert take_input_and_do_nothing_with_it(*constants.MEMBERS)
 
     # Hold a collection of constants...
@@ -185,7 +226,7 @@ def test_iterable_constant():
     constants.WEATHER(_weather)
 
     def operate_on_input(a, b, c, d):
-        assert a+b+c+d == '⛈⚡💨💧'
+        assert a + b + c + d == '⛈⚡💨💧'
         return True
 
     # ...unpack and operate on the elements directly...

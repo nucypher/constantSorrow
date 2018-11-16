@@ -1,9 +1,7 @@
-import sys
-from types import ModuleType
-
 import hashlib
-
+import sys
 from copy import deepcopy
+from types import ModuleType
 
 from . import _digest_length
 
@@ -11,6 +9,8 @@ from . import _digest_length
 class _Constant:
     __repr_content = None
     __bool_repr = None
+    __uses_default_repr = True
+    __has_been_stringified = False
 
     class OldKentucky(RuntimeError):
         pass
@@ -25,7 +25,8 @@ class _Constant:
         self.__name = name
 
     def __setattr__(self, key, value):
-        if key in ("_Constant__repr_content", "_Constant__bool_repr", "_Constant__name"):
+        if key in ("_Constant__repr_content", "_Constant__bool_repr", "_Constant__name", "_Constant__uses_default_repr",
+                   "_Constant__has_been_stringified"):
             super().__setattr__(key, value)
         else:
             raise TypeError("Don't try to set values on a constant.  I mean, what's the point?")
@@ -46,6 +47,10 @@ class _Constant:
         return self._cast_repr(int)
 
     def __str__(self):
+        # Unless there's an explicit repr, we want the str value to be the name.
+        if type(self.__repr_content) is None or self.__uses_default_repr:
+            self.__has_been_stringified = True
+            return self.__name
         if type(self.__repr_content) == bytes:
             return self._cast_repr(str, encoding="utf-8")
         else:
@@ -118,9 +123,15 @@ class _Constant:
                       "already set to {} when you tried to set it to {}"
             raise ValueError(message.format(self.__repr_content, representation))
 
+        if self.__has_been_stringified:
+            if not self.__name == str(representation):
+                message = "This Constant has already been represented as the string {} and can't be changed to be represented by {}"
+                raise ValueError(message.format(self.__name, str(representation)))
+
         elif self.__repr_content is representation:
             return self
         else:
+            self.__uses_default_repr = False
             self.__repr_content = deepcopy(representation)
 
         return self
