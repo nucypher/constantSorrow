@@ -160,7 +160,7 @@ class _Constant:
         if type(other) in (bytes, int, str):
             # Cast to other object type if it's bytes, int, or str.
             caster = type(other)
-        elif type(other) is _Constant:
+        elif _Constant in other.__class__.__bases__:
             try:
                 caster = other._sorrow_type
             except self.OldKentucky:
@@ -211,7 +211,15 @@ _constants_registry = {}
 class __ConstantFactory(ModuleType):
 
     def __getattr__(self, item):
-        constant = _constants_registry.setdefault(item.upper(), _Constant(item))
+
+        try:
+            constant = _constants_registry[item.upper()]
+        except KeyError:
+
+            _constant_class = type(item, (_Constant,), {}) # The actual class of the constant we'll return.
+            constant = _constant_class(item)
+            _constants_registry[item.upper()] = constant
+
         return constant
 
 
