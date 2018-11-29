@@ -6,6 +6,10 @@ from types import ModuleType
 from . import _digest_length
 
 
+def hash_and_truncate(constant):
+    return hashlib.sha512(constant._Constant__name.encode()).digest()[:_digest_length]
+
+
 class _Constant:
     __repr_content = None
     __bool_repr = None
@@ -114,7 +118,10 @@ class _Constant:
         return self._cast_to_other_object_type_or_bytes(other) <= other
 
     def __eq__(self, other):
-        for_comparison_sake = self._cast_to_other_object_type_or_bytes(other)
+        try:
+            for_comparison_sake = self._cast_to_other_object_type_or_bytes(other)
+        except ValueError:  # Can't cast to the other type, so obviously this isn't equal.
+            return False
         return for_comparison_sake == other
 
     def __call__(self, representation):
@@ -181,7 +188,7 @@ class _Constant:
         of the digest.
         """
         if self.__repr_content is None:
-            self(hashlib.sha512(self._Constant__name.encode()).digest()[:_digest_length])
+            self(hash_and_truncate(self))
 
         return caster(self.__repr_content, *args, **kwargs)
 
@@ -205,7 +212,8 @@ class _Constant:
         return self
 
 
-_constants_registry = {}
+_constants_registry_by_name = {}
+_constants_registry_by_hash = {}
 
 
 class __ConstantFactory(ModuleType):
@@ -213,14 +221,31 @@ class __ConstantFactory(ModuleType):
     def __getattr__(self, item):
 
         try:
-            constant = _constants_registry[item.upper()]
+            constant = _constants_registry_by_name[item.upper()]
         except KeyError:
 
             _constant_class = type(item, (_Constant,), {}) # The actual class of the constant we'll return.
             constant = _constant_class(item)
-            _constants_registry[item.upper()] = constant
+            _constants_registry_by_name[item.upper()] = constant
+            _constants_registry_by_hash[hash_and_truncate(constant)] = constant
 
         return constant
+
+
+def constant_or_bytes(possible_constant):
+    """
+    Utility function for getting a constant (that has already been registered) from a serialized constant (ie, bytes of its hash)
+    """
+    if _Constant in possible_constant.__class__.__bases__:
+        result = possible_constant
+    else:
+        bytes_of_possible_constant = bytes(possible_constant)
+        try:
+            constant = _constants_registry_by_hash[bytes_of_possible_constant]
+            result = constant
+        except KeyError:
+            result = bytes_of_possible_constant
+    return result
 
 
 sys.modules[__name__].__class__ = __ConstantFactory
