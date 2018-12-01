@@ -245,3 +245,12 @@ def test_use_methods_on_representation():
     # If a representation is set, attributes other than ("__repr_content", "__bool_repr", "__name") pass through.
     THE_OLD_MAN_THE_BOAT("when Fred eats food gets thrown.")
     assert THE_OLD_MAN_THE_BOAT.upper() == 'WHEN FRED EATS FOOD GETS THROWN.'
+
+
+def test_useful_name_in_exception_output():
+    try:
+        constants.NORTHERN_RAILROAD[:7]
+    except TypeError as e:
+        assert e.args[0] == "'NORTHERN_RAILROAD' object is not subscriptable"
+    else:
+        pytest.fail("Expected this constant not to be subscriptable by default.")
