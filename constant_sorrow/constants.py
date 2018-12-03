@@ -124,6 +124,9 @@ class _Constant:
             return False
         return for_comparison_sake == other
 
+    def __hash__(self):
+        return hash(self.__repr_content)
+
     def __call__(self, representation):
         if self.__repr_content is not None and self.__repr_content is not representation:
             message = "Can't set representation to a different value once set - it was " \
