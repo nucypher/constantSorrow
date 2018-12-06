@@ -128,7 +128,8 @@ class _Constant:
         return hash(self.__repr_content)
 
     def __call__(self, representation):
-        if self.__repr_content is not None and self.__repr_content is not representation:
+        representation_will_change = self.__repr_content is not None and self.__repr_content is not representation
+        if representation_will_change:
             message = "Can't set representation to a different value once set - it was " \
                       "already set to {} when you tried to set it to {}"
             raise ValueError(message.format(self.__repr_content, representation))
