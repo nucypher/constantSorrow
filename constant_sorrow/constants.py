@@ -124,8 +124,12 @@ class _Constant:
             return False
         return for_comparison_sake == other
 
+    def __hash__(self):
+        return hash(self.__repr_content)
+
     def __call__(self, representation):
-        if self.__repr_content is not None and self.__repr_content is not representation:
+        representation_will_change = self.__repr_content is not None and self.__repr_content is not representation
+        if representation_will_change:
             message = "Can't set representation to a different value once set - it was " \
                       "already set to {} when you tried to set it to {}"
             raise ValueError(message.format(self.__repr_content, representation))
@@ -173,11 +177,7 @@ class _Constant:
             except self.OldKentucky:
                 caster = bytes
         else:
-            # bytes otherwise.
             caster = bytes
-        # if type(other) == bytes and type(self.__repr_content) == str:
-        #     return self._cast_repr(str, encoding="utf-8")
-        # else:
         return caster(self)
 
     def _cast_repr(self, caster, *args, **kwargs):
@@ -188,7 +188,8 @@ class _Constant:
         of the digest.
         """
         if self.__repr_content is None:
-            self(hash_and_truncate(self))
+            self.__repr_content = hash_and_truncate(self)
+            assert self.__uses_default_repr  # Sanity check: we are indeed using the default repr here.  If this has ever changed, something went wrong.
 
         return caster(self.__repr_content, *args, **kwargs)
 

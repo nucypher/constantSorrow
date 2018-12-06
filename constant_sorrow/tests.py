@@ -5,6 +5,7 @@ from constant_sorrow import constants
 
 def test_establishing_a_constant():
     # You get a constant by just picking an all-caps name and importing it.
+    from constant_sorrow.constants import THIS_IS_A_VALID_CONSTANT
 
     # That name didn't exist before - you literally just make up
     # an all-caps name and import it.
@@ -248,6 +249,10 @@ def test_use_methods_on_representation():
 
 
 def test_useful_name_in_exception_output():
+    """
+    Constants use a metaclass which uses the Constant name as the string representation of the class (not only the instance).
+    This is useful for meaningful error messages.
+    """
     try:
         constants.NORTHERN_RAILROAD[:7]
     except TypeError as e:
