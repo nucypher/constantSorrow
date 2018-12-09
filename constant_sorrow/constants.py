@@ -16,6 +16,8 @@ class _Constant:
     __uses_default_repr = True
     __has_been_stringified = False
 
+    _doc = "Maybe your friends think this is just an instance; an object you'll never see any more."
+
     class OldKentucky(RuntimeError):
         pass
 
@@ -159,6 +161,10 @@ class _Constant:
     def __iter__(self):
         for item in self.__repr_content:
             yield item
+
+    @classmethod
+    def set_constant_documentation(cls, doc):
+        cls.__doc__ = doc
 
     @property
     def _sorrow_type(self):

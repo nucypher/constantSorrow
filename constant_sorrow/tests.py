@@ -259,3 +259,10 @@ def test_useful_name_in_exception_output():
         assert e.args[0] == "'NORTHERN_RAILROAD' object is not subscriptable"
     else:
         pytest.fail("Expected this constant not to be subscriptable by default.")
+
+
+def test_setting_documentation():
+    from constant_sorrow.constants import NORTHERN_RAILROAD
+    new_doc = "Maybe I'll die upon this train."
+    NORTHERN_RAILROAD.set_constant_documentation(new_doc)
+    assert NORTHERN_RAILROAD.__doc__ == new_doc
