@@ -232,21 +232,4 @@ class __ConstantFactory(ModuleType):
 
         return constant
 
-
-def constant_or_bytes(possible_constant):
-    """
-    Utility function for getting a constant (that has already been registered) from a serialized constant (ie, bytes of its hash)
-    """
-    if _Constant in possible_constant.__class__.__bases__:
-        result = possible_constant
-    else:
-        bytes_of_possible_constant = bytes(possible_constant)
-        try:
-            constant = _constants_registry_by_hash[bytes_of_possible_constant]
-            result = constant
-        except KeyError:
-            result = bytes_of_possible_constant
-    return result
-
-
 sys.modules[__name__].__class__ = __ConstantFactory
