@@ -16,7 +16,7 @@ class _Constant:
     __uses_default_repr = True
     __has_been_stringified = False
 
-    _doc = "Maybe your friends think this is just an instance; an object you'll never see any more."
+    __doc__ = "Maybe your friends think this is just an instance; an object you'll never see any more."
 
     class OldKentucky(RuntimeError):
         pass

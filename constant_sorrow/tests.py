@@ -263,6 +263,13 @@ def test_useful_name_in_exception_output():
 
 def test_setting_documentation():
     from constant_sorrow.constants import NORTHERN_RAILROAD
+    assert not NORTHERN_RAILROAD.__doc__
+
     new_doc = "Maybe I'll die upon this train."
     NORTHERN_RAILROAD.set_constant_documentation(new_doc)
     assert NORTHERN_RAILROAD.__doc__ == new_doc
+
+    from constant_sorrow.constants import MY_OWN_TRUE_LOVER
+    NORTHERN_RAILROAD.set_constant_documentation("I never expect to see you again.")
+
+    assert NORTHERN_RAILROAD.__doc__ != MY_OWN_TRUE_LOVER.__doc__
