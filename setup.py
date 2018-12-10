@@ -25,8 +25,8 @@ class VerifyVersionCommand(install):
             sys.exit(info)
 
 
-INSTALL_REQUIRES = ['bytestringsplitter']
-EXTRAS_REQUIRE = {'testing': ['bumpversion'],
+INSTALL_REQUIRES = ['bytestring-splitter']
+EXTRAS_REQUIRE = {'testing': ['pytest', 'bumpversion'],
                   'docs': ['sphinx', 'sphinx-autobuild']}
 
 setup(name=ABOUT['__title__'],
@@ -37,6 +37,7 @@ setup(name=ABOUT['__title__'],
       description=ABOUT['__summary__'],
       extras_require=EXTRAS_REQUIRE,
       install_requires=INSTALL_REQUIRES,
+      setup_requires=['pytest-runner'],  # required for setup.py test
       packages=['constant_sorrow'],
       classifiers=[
           "Development Status :: 2 - Pre-Alpha",
