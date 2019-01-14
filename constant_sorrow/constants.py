@@ -65,7 +65,7 @@ class _Constant:
     def __bool__(self):
         if self.__bool_repr is None:
             if self.__repr_content is None:
-                raise TypeError("This constant can't currently be represented as a bool.")
+                raise TypeError("The constant {} does not have a boolean representation.".format(self.__class__.__name__))
             else:
                 return bool(self.__repr_content)
         else:
@@ -127,7 +127,7 @@ class _Constant:
         return for_comparison_sake == other
 
     def __hash__(self):
-        return hash(self.__repr_content)
+        return hash(self._Constant__name)
 
     def __call__(self, representation):
         representation_will_change = self.__repr_content is not None and self.__repr_content is not representation
