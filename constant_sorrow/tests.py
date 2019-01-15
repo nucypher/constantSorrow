@@ -1,6 +1,6 @@
 import pytest
 
-from constant_sorrow import constants
+from constant_sorrow import constants, constant_or_bytes
 
 
 def test_establishing_a_constant():
@@ -273,3 +273,17 @@ def test_setting_documentation():
     NORTHERN_RAILROAD.set_constant_documentation("I never expect to see you again.")
 
     assert NORTHERN_RAILROAD.__doc__ != MY_OWN_TRUE_LOVER.__doc__
+
+
+def test_constant_can_be_used_as_hashable_object():
+    from constant_sorrow.constants import DAPPER_DAN
+    pomades = {DAPPER_DAN, "fop"}
+
+    assert DAPPER_DAN in pomades
+    dapper_dan_bytes = bytes(DAPPER_DAN)
+
+    IN_A_COUPLE_WEEKS = constant_or_bytes(dapper_dan_bytes)
+    assert DAPPER_DAN is IN_A_COUPLE_WEEKS
+
+    assert DAPPER_DAN in pomades
+    assert IN_A_COUPLE_WEEKS in pomades
