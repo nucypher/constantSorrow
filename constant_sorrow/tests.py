@@ -27,6 +27,8 @@ def test_same_constants_are_identical():
     assert constants.SAME_THING == SAME_THING
     assert constants.SAME_THING is SAME_THING
 
+    # You can even do this:
+    assert constants.SAME_THING == constants['SAME_THING']
 
 def test_set_representation():
     # Merely using a constant as a special value flag might not be enough.
