@@ -238,4 +238,7 @@ class __ConstantFactory(ModuleType):
 
         return constant
 
+    def __getitem__(self, item):
+        return _constants_registry_by_name[item]
+
 sys.modules[__name__].__class__ = __ConstantFactory
