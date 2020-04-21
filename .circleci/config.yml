@@ -47,7 +47,7 @@ base_test_steps: &base_test_steps
           key: v2-dependencies-{{ checksum "Pipfile" }}
       - run:
           name: Run Tests
-          command: pipenv run pytest  constant_sorrow/tests.py --junitxml=./reports/pytest/results.xml
+          command: pipenv run pytest tests --junitxml=./reports/pytest/results.xml
       - store_artifacts:
           path: ./htmlcov
       - store_test_results:
