@@ -1,4 +1,5 @@
 import pytest
+from sphinx.cmd.build import build_main, make_main
 
 from constant_sorrow import constants, constant_or_bytes
 
@@ -287,3 +288,8 @@ def test_constant_can_be_used_as_hashable_object():
 
     assert DAPPER_DAN in pomades
     assert IN_A_COUPLE_WEEKS in pomades
+
+
+def test_sphinx_can_build_docs_with_constants():
+    # We've observed that sphinx has a problem building when trying to important constant_sorrow.
+    make_main()
