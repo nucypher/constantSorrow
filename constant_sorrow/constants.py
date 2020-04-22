@@ -22,12 +22,9 @@ class _Constant:
         pass
 
     def __init__(self, name):
-        # Names must be upper case except that dunder names can be set.
-        # They're used by a lot of IDE tooling, so let's not mess up a good thing.
         if not name.isupper():
-            if not (name.startswith("__") and name.endswith("__")):
-                raise ValueError(
-                    "Use ALL_CAPS names for constants.  See https://www.python.org/dev/peps/pep-0008/#constants.")
+            raise ValueError(
+                "Use ALL_CAPS names for constants.  See https://www.python.org/dev/peps/pep-0008/#constants.")
         self.__name = name
 
     def __setattr__(self, key, value):
@@ -228,6 +225,10 @@ class __ConstantFactory(ModuleType):
     def __getattr__(self, item):
 
         try:
+            # External tools often look for dunders in modules; we'll raise a normal
+            # AttributeError for those (other names that aren't all CAPS will end up with a ValueError).
+            if (item.startswith("__") and item.endswith("__")):
+                raise AttributeError
             constant = _constants_registry_by_name[item.upper()]
         except KeyError:
 
