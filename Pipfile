@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 bytestring-splitter = "*"
+sphinx = "*"
+pytest = "*"
 
 [dev-packages]
 pytest = "*"

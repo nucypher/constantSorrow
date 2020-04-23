@@ -1,4 +1,6 @@
 import pytest
+import os
+from sphinx.cmd.make_mode import run_make_mode
 
 from constant_sorrow import constants, constant_or_bytes
 
@@ -287,3 +289,10 @@ def test_constant_can_be_used_as_hashable_object():
 
     assert DAPPER_DAN in pomades
     assert IN_A_COUPLE_WEEKS in pomades
+
+
+def test_sphinx_can_build_docs_with_constants():
+    # We've observed that sphinx has a problem building when trying to important constant_sorrow.
+    docs_dir = os.path.join(os.path.dirname(__file__), 'docs_for_testing')
+    exit_code = run_make_mode(args=["html", docs_dir, docs_dir])
+    assert exit_code is not 2
